@@ -21,8 +21,6 @@ Repo to track 601 progress
 
 
 
-## Exploratory Data Analysis
-
 ## Data Visualization
 
 ## Data Preprocessing and Feature Engineering
