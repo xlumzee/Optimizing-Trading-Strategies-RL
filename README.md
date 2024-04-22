@@ -1,5 +1,5 @@
 # DSCI-601-Amy
-Repo to track 601 progress
+Repo to track Capstone 601 - 602 progress
 
 ## Dataset
 
@@ -23,7 +23,28 @@ Repo to track 601 progress
 
 ## Data Visualization
 
+DataViz_v2 notebook is available in Data pipelines folder. This notebook has functions that can be reused as they are standardized. They visualize basic plots that show us information about the data. The plots that are used are :
+- Histograms
+- Correlation Analysis
+- Moving Averages
+- Scatter Plots
+- Pair plots
+- Box Plots
+
+
 ## Data Preprocessing and Feature Engineering
+
+The Data preprocessing and feature engineering notebook is present in the Data Pipelines folder. It has the following functions :
+- Load data
+- Process date column
+- create lagged features
+- calculate rolling statistics
+
+## Test Cases
+
+There is a testing folder which has the *tests_viz.py* file. This has test cases which run on *DataViz_v2.py*. They verify if the data is being loaded correctly and if the visualizations are being plotted and not throwing any errors. 
+
+The same folder has *tests_DataPrepv2.py* file. This will run on the *DataPrepv2.py*. It has 2 test cases which ensure that the data is loading and some initial preprocessing is being done like the date column being converted to datetime. Need to add for lagged features and rolling statistics.
 
 ## Data Modeling 
 To be continued....
