@@ -79,3 +79,17 @@ If you dont want to setup virtual environment, then you can just skip to running
 2) Run the DataPrep notebook if you want to follow along or the python file after setting the folder as Data Pipelines
 ''' python DataPrepv2.py '''
 
+#### Run the test cases
+
+There are test cases to check if the data is being loaded properly and if the data is found after loading, if the histogram and correlation matrices are being plotted. It also checks if the matrix is a 3x3 but it is actually a 8x8 so it will throw an error. 
+
+1)  Go to the testing folder and run the tests_viz
+''' python tests_viz.py'''
+
+This will throw an error in the terminal as i am checking if the tests are working or not.
+
+2) Go to the testing folder and run the tests_DataPrepv2
+''' python tests_DataPrepv2.py '''
+
+
+
