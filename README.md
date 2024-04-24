@@ -48,3 +48,34 @@ The same folder has *tests_DataPrepv2.py* file. This will run on the *DataPrepv2
 
 ## Data Modeling 
 To be continued....
+
+## Steps to Load the project and get it running
+
+#### Clone the Git repository
+
+Put this in your terminal after choosing a folder
+'''git clone github_repo_link'''
+
+#### Start a Virtual environment 
+
+1) Set up a virtual environment in the local directory
+'''python3 -m venv . '''
+
+2) To activate the virtual environment
+'''source ./bin/activate '''
+
+3) To install the required python libraries to your virtual environment (you may need to upgrade pip)
+'''python3 -m pip install -r requirements.txt'''
+
+4) After setting up the virtual environment, you may need to install aditional libraries like pandas, matplotlib
+
+If you dont want to setup virtual environment, then you can just skip to running the data pipelines step.
+
+#### Load the Pipelines
+
+1) Run the DataViz_v2 notebook for visualization and insights on the data or run the python file in the Data Pipelines folder.
+'''python Data
+
+2) Run the DataPrep notebook if you want to follow along or the python file after setting the folder as Data Pipelines
+''' python DataPrepv2.py '''
+
