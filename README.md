@@ -47,7 +47,14 @@ There is a testing folder which has the *tests_viz.py* file. This has test cases
 The same folder has *tests_DataPrepv2.py* file. This will run on the *DataPrepv2.py*. It has 2 test cases which ensure that the data is loading and some initial preprocessing is being done like the date column being converted to datetime. Need to add for lagged features and rolling statistics.
 
 ## Data Modeling 
-To be continued....
+
+### Inital Models
+The Initial Models folder has a Baseline.ipynb. This script has baseline models on the data to see how these models are performing on the data. 
+
+- Random Forest
+- Support Vector Regression
+- Arima
+
 
 ## Steps to Load the project and get it running
 
