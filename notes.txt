@@ -1,18 +1,58 @@
 
-- Data
+------------------------------------------------ Data
+need more data?
+Additional things you can do
+PCA or LDA to manange COD
+
+date - Year, month day, quarter
+RET - 
+VOL_CHANGE
+BA_SPREAD
+ILLIQUIDITY
+sprtrn
+TURNOVER
+DJI_Return
+
+Lagged, rolling stats
+
+Read papers on technical indicators
 
 more feature engg?
 what features will help?
 
-- strategies
+------------------------------------------------ strategies
 
 How will the strategies fit? Which strategies? 
 
-- RL
+Trend following, Mean Reversion, Arbitrage Strategy, Market making, pairs trading - read papers, define performance metrics, backtest find best 
+Create custom environments for each Strategy
+
+------------------------------------------------ RL
 
 find ways to deploy your model? what kind of model? 
 
-- UI
+Portfolio management?
+Algorithmic trading?
+Hedging strategies
+Risk management
+
+Backtest the RL model
+
+Define environment - state, action, reward
+Select RL model - Deep Q-Networks (DQN), Proximal Policy Optimization (PPO), Actor-Critic Methods
+
+
+------------------------------------------------ UI 
+How will the UI look like?
+
+Tech stack? 
+
+Frontend
+Backend
+Database 
+ML - models for training and deploying
+Viz - interactive charts
+
 Have an option to select the data for 30 stocks 
 
 can choose between strategies 
