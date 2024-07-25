@@ -1,0 +1,20 @@
+
+- Data
+
+more feature engg?
+what features will help?
+
+- strategies
+
+How will the strategies fit? Which strategies? 
+
+- RL
+
+find ways to deploy your model? what kind of model? 
+
+- UI
+Have an option to select the data for 30 stocks 
+
+can choose between strategies 
+
+show analysis and give buy or sell decisions
