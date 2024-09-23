@@ -7,6 +7,19 @@ PCA or LDA to manange COD
 date - Year, month day, quarter
 RET - 
 VOL_CHANGE
+
+represents the percentage change in trading volume for the given date compared to the previous trading day
+
+Positive VOL_CHANGE:
+	•	If the value is positive, it indicates that there was more trading activity on that day compared to the previous day.
+	•	Higher volume on positive return days can signal strong market momentum and increased interest in the asset.
+Negative VOL_CHANGE:
+	•	A negative value shows that the trading volume has decreased compared to the previous day.
+	•	Lower volume can suggest waning interest or weaker momentum in the market, or that the price changes are less significant.
+
+Can use VOL_CHANGE as a factor to filter trading signals, ensuring that you only enter trades when volume supports the price movement 
+(i.e., strong moves on increasing volume).
+
 BA_SPREAD
 ILLIQUIDITY
 sprtrn
