@@ -1,20 +1,13 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.cm as cm
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 
 
-# ### Data preprocessing and feature engineering functions
-
-# In[4]:
-
+# ### Data preprocessing pipeline
 
 def load_data(filepath):
     """
@@ -29,6 +22,25 @@ def load_data(filepath):
     data = pd.read_csv(filepath)
     data['date'] = pd.to_datetime(data['date'])
     return data
+
+
+def clean_data(df):
+    """
+    Clean the given DataFrame by dropping duplicate rows and removing unnecessary white spaces.
+
+    Returns:
+        pd.DataFrame: A cleaned DataFrame with no duplicate rows and stripped white spaces.
+    """
+    # Remove any duplicate rows if present
+    df = df.drop_duplicates()
+    
+    # Strip white spaces from headers and text columns
+    df.columns = df.columns.str.strip()
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].str.strip()
+
+    return df
+
 
 def process_date_column(df, date_column):
     """
@@ -51,6 +63,72 @@ def process_date_column(df, date_column):
 
     return df
 
+def handle_missing_values(df, strategy='drop', fill_value=None):
+    """
+    Handle missing values in a DataFrame based on a specified strategy.
+
+    Args:
+        df (pd.DataFrame): The DataFrame with potential missing values.
+        strategy (str): The strategy to handle missing values. Options are:
+                        - 'drop': Drop rows with missing values.
+                        - 'fill': Fill missing values with a specified value or method.
+
+    Returns:
+        pd.DataFrame: A DataFrame with missing values handled based on the chosen strategy.
+    """
+    if strategy == 'drop':
+        df = df.dropna()
+    elif strategy == 'fill':
+        if fill_value is not None:
+            df = df.fillna(fill_value)
+        else:
+            df = df.fillna(df.mean())  # Default: fill with mean values
+    else:
+        raise ValueError("Invalid strategy! Choose either 'drop' or 'fill'.")
+
+    return df
+
+
+def convert_data_types(df, conversions):
+    """
+    Convert specified columns to desired data types. Converts columns to desired data types based on a provided dictionary (conversions) 
+    where keys are column names and values are the target data types.
+
+    Args:
+        df (pd.DataFrame): The DataFrame 
+        conversions (dict): A dictionary specifying the column names as keys and desired data types as values.
+
+    Returns:
+        pd.DataFrame: A DataFrame with converted data types.
+    """
+    for column, dtype in conversions.items():
+        df[column] = df[column].astype(dtype)
+    return df
+
+def normalize_or_scale_features(df, columns, method='standard'):
+    """
+    Normalize or scale specified columns in a DataFrame using a selected method. Normalizes or scales specified columns using either standard scaling (mean=0, std=1)
+    or Min-Max scaling (range [0, 1])
+
+    Args:
+        df (pd.DataFrame): The DataFrame 
+        columns (list): List of column names to be normalized or scaled.
+        method (str): Method for normalization or scaling. Options are:
+                      - 'standard': Standard scaling (mean=0, std=1)
+                      - 'minmax': Min-Max scaling (range [0,1])
+
+    Returns:
+        pd.DataFrame: A DataFrame with normalized or scaled columns.
+    """
+    if method == 'standard':
+        scaler = StandardScaler()
+    elif method == 'minmax':
+        scaler = MinMaxScaler()
+    else:
+        raise ValueError("Invalid method! Choose either 'standard' or 'minmax'.")
+    
+    df[columns] = scaler.fit_transform(df[columns])
+    return df
 
 def create_lagged_features(df, column_name, lags):
     """
@@ -90,7 +168,7 @@ def calculate_rolling_statistics(df, column_prefix, windows):
 # In[14]:
 
 
-df = load_data('/home/amy/work/RIT/TDess/DSCI-601-Amy/Data/Combined/combined_AAPL.csv')
+df = load_data('/Users/amulya/Desktop/Capstone/DSCI-601-Amy/Data/AKAM.csv')
 
 
 # In[15]:
