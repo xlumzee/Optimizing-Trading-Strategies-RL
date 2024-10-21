@@ -42,13 +42,10 @@ def correlation_analysis(df):
     """
     # Select only numeric columns
     numeric_df = df.select_dtypes(include=[np.number])
-
-    # Check if there are numeric columns in the DataFrame
     if numeric_df.empty:
         print("No numeric columns found in the DataFrame for correlation analysis.")
         return
 
-    # Calculate and display the correlation matrix
     correlation_matrix = numeric_df.corr()
     plt.figure(figsize=(10, 8))
     sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm')
