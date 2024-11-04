@@ -4,6 +4,10 @@ from data_loader import load_data
 import config
 import torch
 
+import matplotlib.pyplot as plt
+import pickle
+
+
 def train_reinforce_agent():
     data = load_data(config.DATA_PATH)
 
@@ -22,6 +26,8 @@ def train_reinforce_agent():
 
     num_episodes = config.NUM_EPISODES
 
+    total_rewards = []  # List to store total rewards per episode
+
     for episode in range(num_episodes):
         state = env.reset()
         total_reward = 0
@@ -36,11 +42,27 @@ def train_reinforce_agent():
 
         # Update policy after each episode
         agent.update_policy()
+        total_rewards.append(total_reward)  # Store the total reward
 
         print(f"Episode {episode+1}/{num_episodes}, Total Reward: {total_reward:.2f}")
 
+    # Save the total rewards for plotting
+    with open('reinforce_total_rewards.pkl', 'wb') as f:
+        pickle.dump(total_rewards, f)
+
     # Save the trained policy
     torch.save(agent.policy_network.state_dict(), 'reinforce_trading_model.pth')
+
+    # Plot total rewards per episode
+    plt.figure(figsize=(12, 6))
+    plt.plot(total_rewards)
+    plt.xlabel('Episode')
+    plt.ylabel('Total Reward')
+    plt.title('REINFORCE Training Progress: Total Rewards per Episode')
+    plt.savefig('reinforce_training_rewards.png')
+    plt.show()
+
+
 
     # Evaluate the agent
     evaluate_reinforce_agent(agent, testing_data)
@@ -72,6 +94,20 @@ def evaluate_reinforce_agent(agent, testing_data):
     plt.ylabel('Portfolio Value')
     plt.legend()
     plt.title('Portfolio Value Over Time')
+    plt.show()
+
+    # Map actions to labels
+    action_mapping = {0: 'Hold', 1: 'Buy', 2: 'Sell'}
+    actions = test_env.actions_memory
+
+    # Plot actions over time
+    plt.figure(figsize=(12, 3))
+    plt.plot(actions, label='Actions', marker='o', linestyle='')
+    plt.yticks([0, 1, 2], ['Hold', 'Buy', 'Sell'])
+    plt.xlabel('Time Steps')
+    plt.ylabel('Action')
+    plt.title('Actions Taken Over Time')
+    plt.savefig('reinforce_actions.png')
     plt.show()
 
 if __name__ == "__main__":

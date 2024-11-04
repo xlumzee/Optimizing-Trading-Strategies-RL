@@ -32,6 +32,8 @@ class TradingEnv(gym.Env):
         self.trades = []
         self.portfolio_values = []
 
+        self.actions_memory = [] # same as dqn - to store actions taken for plotting
+
     # updating due to prev total asset not being present
     
     def reset(self):
@@ -43,6 +45,7 @@ class TradingEnv(gym.Env):
         self.trades = []
         self.portfolio_values = []
         self.prev_total_asset = self.total_asset  # Initialize prev_total_asset
+        self.actions_memory = [] # for plots
         return self._next_observation()
 
 
@@ -66,6 +69,9 @@ class TradingEnv(gym.Env):
                 self.shares_held -= 1
                 self.balance += current_price - transaction_cost
                 self.trades.append({'step': self.current_step, 'type': 'sell', 'price': current_price})
+
+        
+        self.actions_memory.append(action) # recording the action
 
         # Update total asset
         self.total_asset = self.balance + self.shares_held * current_price
