@@ -76,3 +76,6 @@ class DQNAgent:
         # Decay epsilon
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+    # exploration rate has decayed to its minimum value of 0.01, 
+    # meaning the agent is predominantly exploiting its learned policy rather than exploring new actions.

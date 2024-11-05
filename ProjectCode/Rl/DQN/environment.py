@@ -1,4 +1,3 @@
-# environment.py
 
 import gym
 from gym import spaces
@@ -9,6 +8,23 @@ class TradingEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, df, initial_balance=100000):
+
+        """
+        Initialize the Trading Environment.
+
+        Parameters:
+        - df (pandas.DataFrame): The market data used for the environment.
+        - initial_balance (float): The starting cash balance for the agent (default is 100,000).
+
+        Main Attributes:
+        - action_space: Defines the set of possible actions (Hold, Buy, Sell).
+        - observation_space: Defines the shape and type of observations the agent receives.
+        - balance: Current cash balance of the agent.
+        - shares_held: Number of shares the agent currently holds.
+        - total_asset: Total value of the agent's portfolio (cash + value of held shares).
+        - portfolio_values: Records the portfolio value over time.
+        - actions_memory: Stores the actions taken by the agent at each time step.
+        """
         super(TradingEnv, self).__init__()
 
         self.df = df.reset_index(drop=True)
@@ -37,6 +53,18 @@ class TradingEnv(gym.Env):
 
 
     def reset(self):
+
+        """
+        Resets the environment to its initial state at the beginning of an episode.
+
+        This method resets all the environment's internal state variables to their
+        initial values, clearing any previous episode's data. It prepares the environment
+        for a new episode by resetting the current step, balances, holdings, and memory
+        used for tracking actions and portfolio values.
+
+        Returns:
+            numpy.ndarray: The initial observation of the environment after resetting.
+        """
         self.current_step = 0
         self.balance = self.initial_balance
         self.shares_held = 0
@@ -49,10 +77,42 @@ class TradingEnv(gym.Env):
         return self._next_observation()
 
     def _next_observation(self):
+        """
+        Retrieves the next observation from the environment.
+
+        This method extracts the feature data for the current time step (self.current_step)
+        from the DataFrame (self.df), excluding the 'date' column as it is not part of the obs. It converts the data
+        into a NumPy array of type float32, which represents the state that will be
+        provided to the agent.
+
+        Returns:
+            numpy.ndarray: The observation of the environment at the current time step.
+        """
         obs = self.df.iloc[self.current_step].drop('date').values.astype(np.float32)
         return obs
 
     def step(self, action):
+        """
+        Executes one time step within the environment based on the action taken by the agent.
+
+        This method updates the environment's state according to the action provided:
+        - If the action is Buy (1), it checks if there is enough balance to buy one share plus transaction cost.
+        - If the action is Sell (2), it checks if the agent has at least one share to sell.
+        - Records the action taken.
+        - Updates the balance, shares held, total asset value, and maximum asset value.
+        - Calculates the reward based on the change in total asset value and transaction costs.
+        - Advances the current step and checks if the episode is done.
+
+        Parameters:
+            action (int): The action taken by the agent (0=Hold, 1=Buy, 2=Sell).
+
+        Returns:
+            tuple:
+                - obs (numpy.ndarray): The next observation of the environment.
+                - reward (float): The reward received after taking the action.
+                - done (bool): A flag indicating whether the episode has ended.
+                - info (dict): Additional information (empty in this case).
+        """
         done = False
         current_price = self.df.iloc[self.current_step]['PRC']
         transaction_cost = self.df.iloc[self.current_step]['TRAN_COST']
@@ -96,6 +156,7 @@ class TradingEnv(gym.Env):
 
         return obs, reward, done, {}
 
+    # build and incorporate
     def render(self, mode='human'):
         profit = self.total_asset - self.initial_balance
         print(f'Step: {self.current_step}, Total Asset: {self.total_asset:.2f}, Profit: {profit:.2f}')
