@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 import pickle
 
 
-def train_reinforce_agent():
-    data = load_data(config.DATA_PATH)
+def train_reinforce_agent(data):
+    # throwing error while UI is generated
+    #data = load_data(config.DATA_PATH)
 
     # Split data 
     split_ratio = 0.8
@@ -62,10 +63,14 @@ def train_reinforce_agent():
     plt.savefig('reinforce_training_rewards.png')
     plt.show()
 
+    
 
 
     # Evaluate the agent
     evaluate_reinforce_agent(agent, testing_data)
+
+
+    return total_rewards, agent
 
 def evaluate_reinforce_agent(agent, testing_data):
     # Create test environment
@@ -109,6 +114,13 @@ def evaluate_reinforce_agent(agent, testing_data):
     plt.title('Actions Taken Over Time')
     plt.savefig('reinforce_actions.png')
     plt.show()
+
+    # for UI
+    return {
+        'cumulative_return': cumulative_return * 100,
+        'portfolio_values': test_env.portfolio_values,
+        'actions': test_env.actions_memory,
+    }
 
 if __name__ == "__main__":
     train_reinforce_agent()
