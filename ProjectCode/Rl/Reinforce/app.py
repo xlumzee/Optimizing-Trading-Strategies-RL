@@ -8,7 +8,7 @@ from main_reinforce import train_reinforce_agent, evaluate_reinforce_agent
 import config
 import matplotlib.pyplot as plt
 
-# Streamlit app title
+# title
 st.title("REINFORCE Trading Algorithm Dashboard")
 
 # Sidebar: Dataset Upload
@@ -25,7 +25,7 @@ if uploaded_file:
 
     # Start training button
     if st.button("Start Training"):
-        with st.spinner("Training in progress..."):
+        with st.spinner("Training in progress..."): # progess bar
             # Train REINFORCE agent
             train_rewards, trained_agent = train_reinforce_agent(data)
 

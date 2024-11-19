@@ -18,13 +18,18 @@ def train_reinforce_agent(data):
     training_data = data.iloc[:split_index]
     testing_data = data.iloc[split_index:]
 
-    # Env creation
+    ######################## -- throwing error
+    # # Env creation
     env = TradingEnv(training_data, initial_balance=config.INITIAL_BALANCE)
-    state_size = env.observation_space.shape[0]
-    action_size = env.action_space.n
+    # state_size = env.observation_space.shape[0]
+    # action_size = env.action_space.n
+
+    # Dynamically determine state and action sizes from the environment
+    state_size = env.observation_space.shape[0]  # Number of features in the state
+    action_size = env.action_space.n  # Number of possible actions
 
     agent = REINFORCEAgent(state_size, action_size, learning_rate=config.AGENT_PARAMS['learning_rate'])
-
+    ######################### ------------------------------------------------------------
     num_episodes = config.NUM_EPISODES
 
     total_rewards = []  # List to store total rewards per episode

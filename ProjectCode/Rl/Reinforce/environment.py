@@ -50,7 +50,15 @@ class TradingEnv(gym.Env):
 
 
     def _next_observation(self):
-        obs = self.df.iloc[self.current_step].drop('date').values.astype(np.float32)
+        # # Select only numeric columns (excluding non-numeric columns and 'date')
+        # numeric_cols = self.df.select_dtypes(include=[float, int]).columns
+        # obs = self.df.iloc[self.current_step][numeric_cols].values.astype(np.float32)
+
+        numeric_cols = self.df.select_dtypes(include=[float, int]).columns
+        obs = self.df.iloc[self.current_step][numeric_cols].values.astype(np.float32)
+        print("Observation shape:", obs.shape)  # Debugging step
+
+        #obs = self.df.iloc[self.current_step].drop('date').values.astype(np.float32)
         return obs
 
     def step(self, action):
