@@ -158,5 +158,11 @@ class TradingEnv(gym.Env):
 
     # build and incorporate
     def render(self, mode='human'):
+        """"
+        
+        Returns : 
+            
+        
+        """
         profit = self.total_asset - self.initial_balance
         print(f'Step: {self.current_step}, Total Asset: {self.total_asset:.2f}, Profit: {profit:.2f}')
