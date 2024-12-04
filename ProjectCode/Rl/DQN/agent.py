@@ -43,13 +43,28 @@ class DQNAgent:
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def act(self, state, evaluate=False):
+    # updated for total rewards error
+    def act(self, state, evaluate=False, recent_rewards=None):
         if not evaluate and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
+
         state = torch.FloatTensor(state).unsqueeze(0)
         with torch.no_grad():
             act_values = self.model(state)
-        return torch.argmax(act_values[0]).item()
+
+        action = torch.argmax(act_values[0]).item()
+
+        # Adaptive epsilon decay based on recent rewards
+        if recent_rewards is not None:
+            if self.epsilon > self.epsilon_min:
+                if recent_rewards and np.mean(recent_rewards) > 0:  # Positive recent rewards
+                    self.epsilon *= 0.99  # Faster decay
+                else:
+                    self.epsilon *= 0.995  # Slower decay
+
+        return action
+
+
 
     def replay(self):
         if len(self.memory) < self.batch_size:

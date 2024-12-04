@@ -24,7 +24,6 @@ def train_agent():
     agent = DQNAgent(state_size, action_size, config.AGENT_PARAMS)
 
     episodes = config.NUM_EPISODES
-
     total_rewards = []  # List to store total rewards per episode
 
     for e in range(episodes):
@@ -33,7 +32,10 @@ def train_agent():
         done = False
 
         while not done:
-            action = agent.act(state)
+            # Pass recent rewards to the agent for epsilon adjustment
+            recent_rewards = total_rewards[-10:] if len(total_rewards) >= 10 else total_rewards
+            action = agent.act(state, recent_rewards=recent_rewards)
+
             next_state, reward, done, _ = env.step(action)
             agent.remember(state, action, reward, next_state, done)
             state = next_state
@@ -44,10 +46,9 @@ def train_agent():
             if agent.step_count % agent.update_target_every == 0:
                 agent.update_target_model()
 
-        total_rewards.append(total_reward)  # Store the total reward
+        total_rewards.append(total_reward)
 
         print(f"Episode {e+1}/{episodes}, Total Reward: {total_reward:.2f}, Epsilon: {agent.epsilon:.2f}")
-
 
     # Save the total rewards for plotting
     with open('dqn_total_rewards.pkl', 'wb') as f:
@@ -67,6 +68,7 @@ def train_agent():
 
     # Evaluate the agent
     evaluate_agent(agent, testing_data)
+
 
 def evaluate_agent(agent, testing_data):
     # Create test environment

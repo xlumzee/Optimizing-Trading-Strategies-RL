@@ -112,7 +112,7 @@ class TradingEnv(gym.Env):
                 - reward (float): The reward received after taking the action.
                 - done (bool): A flag indicating whether the episode has ended.
                 - info (dict): Additional information (empty in this case).
-        """
+        """    
         done = False
         current_price = self.df.iloc[self.current_step]['PRC']
         transaction_cost = self.df.iloc[self.current_step]['TRAN_COST']
@@ -129,7 +129,7 @@ class TradingEnv(gym.Env):
                 self.balance += current_price - transaction_cost
                 self.trades.append({'step': self.current_step, 'type': 'sell', 'price': current_price})
 
-        # record the action
+        # Record the action
         self.actions_memory.append(action)
 
         # Update total asset
@@ -137,9 +137,15 @@ class TradingEnv(gym.Env):
         self.max_asset = max(self.max_asset, self.total_asset)
         self.portfolio_values.append(self.total_asset)
 
-        # Calculate reward
-        reward = self.total_asset - self.max_asset  # Penalize loss in asset value
-        reward -= transaction_cost  # Subtract transaction cost
+        # **Improved Reward Function**
+        reward = (self.total_asset - self.initial_balance) / self.initial_balance  # Portfolio growth-based reward
+        reward -= transaction_cost * 0.1  # Penalize transaction cost
+        if action == 0 and current_price > self.df.iloc[self.current_step - 1]['PRC']:  # Reward holding during uptrend
+            reward += 0.01
+        
+        # Reward for risk-adjusted return
+        volatility = np.std(self.portfolio_values[-10:]) if len(self.portfolio_values) > 10 else 1e-5
+        reward = (self.total_asset - self.max_asset) / (volatility + 1e-5)  # Sharpe-like reward
 
         # Proceed to next step
         self.current_step += 1
@@ -155,6 +161,8 @@ class TradingEnv(gym.Env):
         obs = self._next_observation() if not done else np.zeros(self.observation_space.shape)
 
         return obs, reward, done, {}
+        
+
 
     # build and incorporate
     def render(self, mode='human'):
