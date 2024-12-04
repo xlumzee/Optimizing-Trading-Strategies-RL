@@ -51,14 +51,14 @@ class TradingEnv(gym.Env):
 
     def _next_observation(self):
         # # Select only numeric columns (excluding non-numeric columns and 'date')
-        # numeric_cols = self.df.select_dtypes(include=[float, int]).columns
-        # obs = self.df.iloc[self.current_step][numeric_cols].values.astype(np.float32)
+        
+        #print("Observation shape:", obs.shape)  # Debugging step
+
 
         numeric_cols = self.df.select_dtypes(include=[float, int]).columns
         obs = self.df.iloc[self.current_step][numeric_cols].values.astype(np.float32)
-        print("Observation shape:", obs.shape)  # Debugging step
-
-        #obs = self.df.iloc[self.current_step].drop('date').values.astype(np.float32)
+        obs = (obs - np.mean(obs)) / (np.std(obs) + 1e-9)  # Normalize for stability
+    
         return obs
 
     def step(self, action):
@@ -87,11 +87,28 @@ class TradingEnv(gym.Env):
         self.portfolio_values.append(self.total_asset)
 
         # Calculate reward
-        #reward = self.total_asset - self.max_asset  # Penalize loss in asset value
-        #reward -= transaction_cost  # Subtract transaction cost
-
+        
         reward = self.total_asset - self.prev_total_asset
+
+        # Reward profitable trends
+        if self.total_asset > self.prev_total_asset:
+            reward += 0.05  # Stronger incentive for growth
+
+        # Penalize holding during losses
+        if action == 0 and self.total_asset < self.prev_total_asset:
+            reward -= 0.02
+
+        # Penalize frequent trades (Buy/Sell)
+        if action in [1, 2]:
+            reward -= transaction_cost / self.initial_balance
+
+        # Penalize large drawdowns
+        drawdown_penalty = max(0, self.max_asset - self.total_asset) / self.initial_balance
+        reward -= drawdown_penalty * 0.01
+
         self.prev_total_asset = self.total_asset
+
+        
 
         # next step
         self.current_step += 1

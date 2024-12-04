@@ -128,4 +128,5 @@ def evaluate_reinforce_agent(agent, testing_data):
     }
 
 if __name__ == "__main__":
-    train_reinforce_agent()
+    data = load_data('/Users/amulya/Desktop/Capstone/DSCI-601-Amy/Data/FeatureEngineered/AKAM_feature_engineeredv2.csv')
+    total_rewards, agent = train_reinforce_agent(data)
