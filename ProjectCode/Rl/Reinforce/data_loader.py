@@ -24,6 +24,7 @@ def load_data(file_path):
 
     # Combine 'date' with processed numeric data
     processed_df = pd.concat([date_column, df_numeric], axis=1)
+    processed_df.dropna(inplace=True)
 
     return processed_df
 

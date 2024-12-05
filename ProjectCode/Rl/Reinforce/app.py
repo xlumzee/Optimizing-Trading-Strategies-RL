@@ -1,35 +1,41 @@
 import streamlit as st
 import pandas as pd
 import pickle
-import torch
+from data_loader import load_data  # Import the preprocessing function
 from reinforce_agent import REINFORCEAgent
-from environment import TradingEnv
 from main_reinforce import train_reinforce_agent, evaluate_reinforce_agent
-import config
 import matplotlib.pyplot as plt
 
-# title
+# Title
 st.title("REINFORCE Trading Algorithm Dashboard")
 
 # Sidebar: Dataset Upload
-uploaded_file = st.sidebar.file_uploader("Upload your Feature-Engineered Dataset (CSV)", type=["csv"])
+uploaded_file = st.sidebar.file_uploader("Upload Feature-Engineered Dataset (CSV)", type=["csv"])
 
 if uploaded_file:
-    # Load dataset
-    data = pd.read_csv(uploaded_file)
-    st.write("### Uploaded Dataset Preview")
-    st.dataframe(data.head())
+    try:
+        # Preprocess data using the data_loader.py function
+        data = load_data(uploaded_file)
+        st.write("### Preprocessed Dataset Preview")
+        st.dataframe(data.head())
+    except ValueError as e:
+        st.error(str(e))
+        st.stop()
 
-    # Preprocessing
-    st.write(f"Dataset Length: {len(data)} rows")
+    # Training Hyperparameters
+    st.sidebar.write("### Training Hyperparameters")
+    episodes = st.sidebar.number_input("Number of Episodes", min_value=10, max_value=1000, value=50)
+    # giving error - fix it
+    #learning_rate = st.sidebar.number_input("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001)
+    gamma = st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99)
 
-    # Start training button
+    # Train Button
     if st.button("Start Training"):
-        with st.spinner("Training in progress..."): # progess bar
-            # Train REINFORCE agent
+        with st.spinner("Training in progress..."):
             train_rewards, trained_agent = train_reinforce_agent(data)
+            st.success("Training Completed!")
 
-            # Plot training rewards
+            # Plot Training Rewards
             st.write("### Training Rewards per Episode")
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.plot(train_rewards)
@@ -38,44 +44,26 @@ if uploaded_file:
             ax.set_title("Training Progress")
             st.pyplot(fig)
 
-        # Save the trained agent for later evaluation
-        with open("trained_agent.pkl", "wb") as f:
-            pickle.dump(trained_agent, f)
+            # Save trained agent
+            with open("trained_agent.pkl", "wb") as f:
+                pickle.dump(trained_agent, f)
 
-        st.success("Training Completed! The agent has been saved.")
-
-    # Evaluate the agent
+    # Evaluate Button
     if st.button("Evaluate Agent"):
-        if not uploaded_file:
-            st.error("Please upload a dataset for evaluation.")
-        else:
-            with st.spinner("Evaluating the agent..."):
-                # Load trained agent
-                with open("trained_agent.pkl", "rb") as f:
-                    trained_agent = pickle.load(f)
+        try:
+            with open("trained_agent.pkl", "rb") as f:
+                trained_agent = pickle.load(f)
+            evaluation_results = evaluate_reinforce_agent(trained_agent, data)
 
-                # Evaluate the agent
-                evaluation_results = evaluate_reinforce_agent(trained_agent, data)
+            # Display Metrics and Results
+            st.write(f"### Cumulative Return: {evaluation_results['cumulative_return']:.2f}%")
+            st.write("### Portfolio Value Over Time")
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.plot(evaluation_results['portfolio_values'], label="Portfolio Value")
+            ax.set_xlabel("Time Steps")
+            ax.set_ylabel("Portfolio Value")
+            ax.legend()
+            st.pyplot(fig)
 
-                # Display cumulative return
-                st.write(f"### Cumulative Return: {evaluation_results['cumulative_return']:.2f}%")
-
-                # Portfolio Value Over Time
-                st.write("### Portfolio Value Over Time")
-                fig, ax = plt.subplots(figsize=(10, 5))
-                ax.plot(evaluation_results['portfolio_values'], label="Portfolio Value")
-                ax.set_xlabel("Time Steps")
-                ax.set_ylabel("Portfolio Value")
-                ax.legend()
-                st.pyplot(fig)
-
-                # Actions Taken Over Time
-                st.write("### Actions Taken Over Time")
-                fig, ax = plt.subplots(figsize=(10, 3))
-                ax.plot(evaluation_results['actions'], marker='o', linestyle='', label="Actions")
-                ax.set_yticks([0, 1, 2])
-                ax.set_yticklabels(['Hold', 'Buy', 'Sell'])
-                ax.set_xlabel("Time Steps")
-                ax.set_ylabel("Action")
-                ax.legend()
-                st.pyplot(fig)
+        except FileNotFoundError:
+            st.error("No trained agent found. Please train the agent first.")
