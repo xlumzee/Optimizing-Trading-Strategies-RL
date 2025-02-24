@@ -71,3 +71,20 @@ Have an option to select the data for 30 stocks
 can choose between strategies 
 
 show analysis and give buy or sell decisions
+
+------------------------------------------------
+Evaluation metrics for Forecasters
+
+
+
+------------------------------------------------
+Evaluation metrics for RL Algorithms
+
+- Cumulative returns (Overrall profitability)
+- Win Rate (% of profitable trades)
+- Trade efficiency (profitability per trade)
+- Sharpe ratio
+
+
+------------------------------------------------
+- network architecture too simple for DQN - Consistently underperforming

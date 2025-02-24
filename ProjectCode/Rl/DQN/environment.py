@@ -137,11 +137,17 @@ class TradingEnv(gym.Env):
         self.max_asset = max(self.max_asset, self.total_asset)
         self.portfolio_values.append(self.total_asset)
 
-        # **Improved Reward Function**
+        # These lines of code are giving me a headache
         reward = (self.total_asset - self.initial_balance) / self.initial_balance  # Portfolio growth-based reward
-        reward -= transaction_cost * 0.1  # Penalize transaction cost
-        if action == 0 and current_price > self.df.iloc[self.current_step - 1]['PRC']:  # Reward holding during uptrend
-            reward += 0.01
+
+        if action == 1 and self.balance >= current_price + transaction_cost:  # Buy
+            reward += 0.01  # Small reward for buying
+        elif action == 2 and self.shares_held > 0:  # Sell
+            reward += 0.01  # Small reward for selling
+
+        reward -= transaction_cost / self.initial_balance  # Penalize transaction costs
+        reward -= abs(self.total_asset - self.max_asset) / self.max_asset  # Penalize drawdowns
+
         
         # Reward for risk-adjusted return
         volatility = np.std(self.portfolio_values[-10:]) if len(self.portfolio_values) > 10 else 1e-5

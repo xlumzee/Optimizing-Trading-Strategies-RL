@@ -31,11 +31,12 @@ def train_agent():
         total_reward = 0
         done = False
 
-        while not done:
-            # Pass recent rewards to the agent for epsilon adjustment
-            recent_rewards = total_rewards[-10:] if len(total_rewards) >= 10 else total_rewards
-            action = agent.act(state, recent_rewards=recent_rewards)
+        # Periodically reset epsilon to encourage exploration
+        if e % 10 == 0:
+            agent.epsilon = max(agent.epsilon * 1.1, 0.2)  # Boost exploration temporarily
 
+        while not done:
+            action = agent.act(state)
             next_state, reward, done, _ = env.step(action)
             agent.remember(state, action, reward, next_state, done)
             state = next_state
@@ -47,7 +48,6 @@ def train_agent():
                 agent.update_target_model()
 
         total_rewards.append(total_reward)
-
         print(f"Episode {e+1}/{episodes}, Total Reward: {total_reward:.2f}, Epsilon: {agent.epsilon:.2f}")
 
     # Save the total rewards for plotting

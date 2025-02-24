@@ -5,6 +5,7 @@ from data_loader import load_data  # Import the preprocessing function
 from reinforce_agent import REINFORCEAgent
 from main_reinforce import train_reinforce_agent, evaluate_reinforce_agent
 import matplotlib.pyplot as plt
+import config
 
 # Title
 st.title("REINFORCE Trading Algorithm Dashboard")
@@ -12,9 +13,20 @@ st.title("REINFORCE Trading Algorithm Dashboard")
 # Sidebar: Dataset Upload
 uploaded_file = st.sidebar.file_uploader("Upload Feature-Engineered Dataset (CSV)", type=["csv"])
 
+st.sidebar.write("### Training Hyperparameters")
+config.NUM_EPISODES = st.sidebar.number_input(
+    "Number of Episodes", min_value=10, max_value=1000, value=config.NUM_EPISODES
+)
+
+# Learning rate giving errors
+# config.AGENT_PARAMS = {
+#     "learning_rate": st.sidebar.number_input("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001),
+#     "gamma": st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99),
+# }
+
 if uploaded_file:
     try:
-        # Preprocess data using the data_loader.py function
+        
         data = load_data(uploaded_file)
         st.write("### Preprocessed Dataset Preview")
         st.dataframe(data.head())
@@ -23,11 +35,11 @@ if uploaded_file:
         st.stop()
 
     # Training Hyperparameters
-    st.sidebar.write("### Training Hyperparameters")
-    episodes = st.sidebar.number_input("Number of Episodes", min_value=10, max_value=1000, value=50)
+    #st.sidebar.write("### Training Hyperparameters")
+    #episodes = st.sidebar.number_input("Number of Episodes", min_value=10, max_value=1000, value=50)
     # giving error - fix it
     #learning_rate = st.sidebar.number_input("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001)
-    gamma = st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99)
+    #gamma = st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99)
 
     # Train Button
     if st.button("Start Training"):
