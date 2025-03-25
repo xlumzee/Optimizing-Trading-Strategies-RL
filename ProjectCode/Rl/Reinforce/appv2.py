@@ -1,15 +1,38 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import pickle
-from data_loader import load_data  # Import the preprocessing function
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from data_loader import load_data  # your custom preprocessing function
 from reinforce_agent import REINFORCEAgent
 from main_reinforce import train_reinforce_agent, evaluate_reinforce_agent
-import matplotlib.pyplot as plt
 import config
-import numpy as np
+
+# for wide layout and removing padding
+st.set_page_config(layout="wide")
+
+# Remove default Streamlit padding/margins
+st.markdown(
+    """
+    <style>
+    /* Remove extra padding from the top */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+    }
+    /* Optional: reduce side padding as well */
+    .block-container, .main, .viewerBadge_container__1QSob {
+        padding-left: 1rem !important;
+        padding-right: 0rem !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
-# Title
 st.title("REINFORCE Trading Algorithm Dashboard")
 
 # Sidebar: Dataset Upload
@@ -17,14 +40,11 @@ uploaded_file = st.sidebar.file_uploader("Upload Feature-Engineered Dataset (CSV
 
 st.sidebar.write("### Training Hyperparameters")
 config.NUM_EPISODES = st.sidebar.number_input(
-    "Number of Episodes", min_value=10, max_value=1000, value=config.NUM_EPISODES
+    "Number of Episodes",
+    min_value=10,
+    max_value=1000,
+    value=config.NUM_EPISODES
 )
-
-# Learning rate giving errors
-# config.AGENT_PARAMS = {
-#     "learning_rate": st.sidebar.number_input("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001),
-#     "gamma": st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99),
-# }
 
 def max_drawdown(portfolio_values):
     """
@@ -38,28 +58,107 @@ def max_drawdown(portfolio_values):
 
 if uploaded_file:
     try:
-        
         data = load_data(uploaded_file)
-        st.write("### Preprocessed Dataset Preview")
-        st.dataframe(data.head())
     except ValueError as e:
         st.error(str(e))
         st.stop()
 
-    # Training Hyperparameters
-    #st.sidebar.write("### Training Hyperparameters")
-    #episodes = st.sidebar.number_input("Number of Episodes", min_value=10, max_value=1000, value=50)
-    # giving error - fix it
-    #learning_rate = st.sidebar.number_input("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001)
-    #gamma = st.sidebar.slider("Discount Factor (Gamma)", min_value=0.0, max_value=1.0, value=0.99)
+    # Convert "date" to datetime if present
+    if "date" in data.columns:
+        data["date"] = pd.to_datetime(data["date"], errors="coerce")
 
-    # Train Button
+    # Create a two-column layout: left (1) and right (2)
+    left_col, right_col = st.columns([1, 2])
+
+   #left side
+    with left_col:
+        st.subheader("Preprocessed Dataset Preview")
+        # Show only first 10 rows to fit better
+        st.dataframe(data.head(10))
+
+        # Display basic statistics - integrate the following code snippet with the feature engineering pipeline and it should display dynamically
+        # needs to be updated
+        
+        # st.write("**New Feature-Engineered Variables**:")
+        # st.markdown("""
+        # - **RET**: Daily returns
+        # - **VOL_CHANGE**: Volume change ratio
+        # - **BA_SPREAD**: Bid-Ask spread
+        # - **ILLIQUIDITY**: Amihud illiquidity measure
+        # - **RET_ema_12, RET_ema_26**: Exponential moving averages of returns
+        # - **day_of_week**: Numeric day indicator (0=Mon, 6=Sun)
+        # """)
+
+   #EDA on the right partition
+    with right_col:
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+
+        # Create a 2x2 layout inside the right column
+        row_top_left, row_top_right = st.columns(2)
+        row_bot_left, row_bot_right = st.columns(2)
+
+        # 1) Time-Series (PRC over Date)
+        with row_top_left:
+            st.write("**PRC over Date**")
+            if "date" in data.columns and "PRC" in data.columns:
+                df_sorted = data.sort_values(by="date")
+                fig_ts, ax_ts = plt.subplots()
+                ax_ts.plot(df_sorted["date"], df_sorted["PRC"], label="Price")
+                ax_ts.set_xlabel("Date")
+                ax_ts.set_ylabel("PRC")
+                ax_ts.set_title("Time Series of PRC")
+                plt.xticks(rotation=30)
+                ax_ts.legend()
+                st.pyplot(fig_ts)
+            else:
+                st.write("Missing 'date' or 'PRC' column.")
+
+        # 2) Histogram of Returns
+        with row_top_right:
+            st.write("**Histogram of Returns (RET)**")
+            if "RET" in data.columns:
+                fig_ret, ax_ret = plt.subplots()
+                ax_ret.hist(data["RET"].dropna(), bins=30)
+                ax_ret.set_xlabel("RET")
+                ax_ret.set_ylabel("Frequency")
+                ax_ret.set_title("Distribution of RET")
+                st.pyplot(fig_ret)
+            else:
+                st.write("No 'RET' column found.")
+
+        # 3) Correlation Heatmap
+        with row_bot_left:
+            st.write("**Correlation Heatmap**")
+            if len(numeric_cols) > 1:
+                fig_corr, ax_corr = plt.subplots(figsize=(4, 3))
+                corr_matrix = data[numeric_cols].corr()
+                sns.heatmap(corr_matrix, ax=ax_corr, annot=False, cmap="coolwarm")
+                ax_corr.set_title("Correlation")
+                st.pyplot(fig_corr)
+            else:
+                st.write("Not enough numeric columns for correlation.")
+
+        # 4) Box Plot: Returns by Day of Week
+        with row_bot_right:
+            st.write("**Box Plot: RET by day_of_week**")
+            if "day_of_week" in data.columns and "RET" in data.columns:
+                fig_box, ax_box = plt.subplots()
+                sns.boxplot(x="day_of_week", y="RET", data=data, ax=ax_box)
+                ax_box.set_title("RET by day_of_week")
+                ax_box.set_xlabel("Day of Week")
+                ax_box.set_ylabel("RET")
+                st.pyplot(fig_box)
+            else:
+                st.write("Need 'day_of_week' and 'RET' columns to plot.")
+
+   #--------------------
+   # TRAINING & EVALUATION
     if st.button("Start Training"):
         with st.spinner("Training in progress..."):
             train_rewards, trained_agent = train_reinforce_agent(data)
             st.success("Training Completed!")
 
-            # Plot Training Rewards
+            # Plot training rewards
             st.write("### Training Rewards per Episode")
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.plot(train_rewards)
@@ -72,37 +171,15 @@ if uploaded_file:
             with open("trained_agent.pkl", "wb") as f:
                 pickle.dump(trained_agent, f)
 
-    # Evaluate Button - throwing error
-    # if st.button("Evaluate Agent"):
-    #     try:
-    #         with open("trained_agent.pkl", "rb") as f:
-    #             trained_agent = pickle.load(f)
-    #         evaluation_results = evaluate_reinforce_agent(trained_agent, data)
-
-    #         # Display Metrics and Results
-    #         st.write(f"### Cumulative Return: {evaluation_results['cumulative_return']:.2f}%")
-    #         st.write("### Portfolio Value Over Time")
-    #         fig, ax = plt.subplots(figsize=(10, 5))
-    #         ax.plot(evaluation_results['portfolio_values'], label="Portfolio Value")
-    #         ax.set_xlabel("Time Steps")
-    #         ax.set_ylabel("Portfolio Value")
-    #         ax.legend()
-    #         st.pyplot(fig)
-
-    #     except FileNotFoundError:
-    #         st.error("No trained agent found. Please train the agent first.")
-
-
-# define the metrics - in a file called metrics.py that is being sourced from the dataset [data]
+    #Evaluation - throwing error for the addn metric - fix this
     if st.button("Evaluate Agent"):
         try:
             with open("trained_agent.pkl", "rb") as f:
                 trained_agent = pickle.load(f)
+
             evaluation_results = evaluate_reinforce_agent(trained_agent, data)
 
-            # Display your basic results (cumulative return, portfolio value chart)
             st.write(f"### Cumulative Return: {evaluation_results['cumulative_return']:.2f}%")
-
             st.write("### Portfolio Value Over Time")
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.plot(evaluation_results['portfolio_values'], label="Portfolio Value")
@@ -111,27 +188,17 @@ if uploaded_file:
             ax.legend()
             st.pyplot(fig)
 
-            # ----------------------------------
-            # 1) Add a dropdown for metric choice
-            # ----------------------------------
-            metrics = [
+            # Metric selection
+            metrics_list = [
                 "Sharpe Ratio",
                 "Maximum Drawdown",
                 "Volatility (Std Dev of Returns)",
                 "Distribution of Daily Returns",
                 "Win Rate"
             ]
-            selected_metric = st.selectbox("Select a metric to display:", metrics)
+            selected_metric = st.selectbox("Select a metric to display:", metrics_list)
 
-            # ----------------------------------
-            # 2) Compute & display the chosen metric
-            # ----------------------------------
-            # Let's assume your `evaluation_results` might contain:
-            # - evaluation_results['daily_returns'] 
-            # - evaluation_results['portfolio_values']
-            # - evaluation_results['trade_profits'] (list of P&L for each trade)
-            # Adjust as needed for your actual returns/trades keys.
-
+            # Compute & display metric
             if selected_metric == "Sharpe Ratio":
                 if 'daily_returns' in evaluation_results:
                     daily_returns = evaluation_results['daily_returns']
@@ -180,3 +247,6 @@ if uploaded_file:
 
         except FileNotFoundError:
             st.error("No trained agent found. Please train the agent first.")
+
+else:
+    st.write("Please upload a CSV file to begin.")
