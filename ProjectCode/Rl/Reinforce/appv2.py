@@ -5,7 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from data_loader import load_data  # your custom preprocessing function
+from data_loader import load_data  
 from reinforce_agent import REINFORCEAgent
 from main_reinforce import train_reinforce_agent, evaluate_reinforce_agent
 import config
@@ -25,7 +25,7 @@ st.markdown(
     /* Optional: reduce side padding as well */
     .block-container, .main, .viewerBadge_container__1QSob {
         padding-left: 1rem !important;
-        padding-right: 0rem !important;
+        padding-right: 1rem !important;
     }
     </style>
     """,
@@ -78,7 +78,7 @@ if uploaded_file:
 
         # Display basic statistics - integrate the following code snippet with the feature engineering pipeline and it should display dynamically
         # needs to be updated
-        
+
         # st.write("**New Feature-Engineered Variables**:")
         # st.markdown("""
         # - **RET**: Daily returns
