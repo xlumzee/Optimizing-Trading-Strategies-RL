@@ -4,6 +4,9 @@ Capstone DSCI-601 / 602  |  2024-2025
 
 A reproducible research & engineering project that explores classical factor models and deep-reinforcement-learning (DRL) to design, train and back-test discretionary-free equity trading strategies.
 
+<img width="791" height="522" alt="image" src="https://github.com/user-attachments/assets/d293f895-0c08-459f-96d9-bc956e0b415d" />
+
+
 ⸻
 
 ## Table of Contents
