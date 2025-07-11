@@ -1,102 +1,151 @@
-# DSCI-601-Amy
-Repo to track Capstone 601 - 602 progress
+# Optimizing Trading Strategies with Reinforcement Learning
 
-## Dataset
+Capstone DSCI-601 / 602  |  2024-2025
 
+A reproducible research & engineering project that explores classical factor models and deep-reinforcement-learning (DRL) to design, train and back-test discretionary-free equity trading strategies.
 
-### About the data
+⸻
 
-| Variable   | Description |
-|------------|-------------|
-| Date       | Timestamp for the data. |
-| RET        | Return on a stock over a given period of time. |
-| Vol_Change | Changes in trading volume. Increase in volume can signify high interest, while a decrease might suggest less interest. |
-| BA_Spread  | Difference between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask). A narrower spread often indicates a more liquid market or higher market efficiency, whereas a wider spread can indicate lower liquidity or higher risk. |
-| Illiquidity| A measure of the difficulty of trading a stock without affecting its price. High illiquidity means the stock is not easily tradable without significant price changes, which can increase the cost of trading and the risk. |
-| Sprtrn     | Return of the S&P 500 index, which is a market-capitalization-weighted index of the 500 largest U.S. publicly traded companies. The S&P 500 is a common benchmark for U.S. stock performance. |
-| Turnover   | Refers to the total volume of shares traded during a specific period divided by the total shares outstanding. High turnover can indicate high trading activity, suggesting interest or volatility in the stock. |
-| Dji_Return | Return on the Dow Jones Industrial Average, another major stock market index in the United States. It consists of 30 large, publicly-owned companies based in the United States. |
+## Table of Contents
+	1.	Project Overview
+	2.	Quick Start
+	3.	Repository Layout
+	4.	Data Pipeline
+	5.	Baseline Models
+	6.	RL Environment & Agents
+	7.	Back-testing & Evaluation
+	8.	Unit Tests
+	9.	Road-map
+	10.	Contributing
+	11.	License
 
-##### The data files are available in the Data folder. After cloning the repository, you can load the data using pandas read_csv function. 
+⸻
 
+## Project Overview
 
+This capstone investigates whether deep-RL agents can reliably outperform conventional factor-based strategies on U.S. equities when realistic frictions (bid–ask spread, turnover, market impact) are included.
 
-## Data Visualization
+The workflow is divided into three layers:
 
-DataViz_v2 notebook is available in Data pipelines folder. This notebook has functions that can be reused as they are standardized. They visualize basic plots that show us information about the data. The plots that are used are :
-- Histograms
-- Correlation Analysis
-- Moving Averages
-- Scatter Plots
-- Pair plots
-- Box Plots
-
-
-## Data Preprocessing and Feature Engineering
-
-The Data preprocessing and feature engineering notebook is present in the Data Pipelines folder. It has the following functions :
-- Load data
-- Process date column
-- create lagged features
-- calculate rolling statistics
-
-## Test Cases
-
-There is a testing folder which has the *tests_viz.py* file. This has test cases which run on *DataViz_v2.py*. They verify if the data is being loaded correctly and if the visualizations are being plotted and not throwing any errors. 
-
-The same folder has *tests_DataPrepv2.py* file. This will run on the *DataPrepv2.py*. It has 2 test cases which ensure that the data is loading and some initial preprocessing is being done like the date column being converted to datetime. Need to add for lagged features and rolling statistics.
-
-## Data Modeling 
-
-### Inital Models
-The Initial Models folder has a Baseline.ipynb. This script has baseline models on the data to see how these models are performing on the data. 
-
-- Random Forest
-- Support Vector Regression
-- Arima
+Layer	Goal	Key Artefacts
+Exploratory & Feature Engineering	Clean market micro-structure data, engineer lagged / rolling factors	Data/, DataPipelines/ notebooks & scripts
+Classical Baseline	Benchmark with Random Forest, SVR, ARIMA forecasts	ProjectCode/baselines/
+Reinforcement Learning	Train DQN / PPO agents inside a custom Gym environment that emits (state = engineered features) and rewards (risk-adjusted PnL)	ProjectCode/rl_env/, ProjectCode/train.py, ProjectCode/evaluate.py
 
 
-## Steps to Load the project and get it running
+⸻
 
-#### Clone the Git repository
+### Quick Start
 
-Put this in your terminal after choosing a folder
-'''git clone github_repo_link'''
+Tested on Python 3.12 (see  .python-version) and macOS/Ubuntu.
 
-#### Start a Virtual environment 
+#### 1. clone
+$ git clone https://github.com/xlumzee/Optimizing-Trading-Strategies-RL.git
+$ cd Optimizing-Trading-Strategies-RL
 
-1) Set up a virtual environment in the local directory
-'''python3 -m venv . '''
+#### 2. create & activate venv (recommended)
+$ python3 -m venv .venv
+$ source .venv/bin/activate
 
-2) To activate the virtual environment
-'''source ./bin/activate '''
+#### 3. install requirements
+$ pip install -r requirements.txt  # ~220 MB incl. Jupyter & scikit-learn
 
-3) To install the required python libraries to your virtual environment (you may need to upgrade pip)
-'''python3 -m pip install -r requirements.txt'''
+#### 4. (optional) install torch with CUDA
+$ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-4) After setting up the virtual environment, you may need to install aditional libraries like pandas, matplotlib
+#### 5. spin up Jupyter to reproduce notebooks
+$ jupyter lab
 
-If you dont want to setup virtual environment, then you can just skip to running the data pipelines step.
+####6. kick-off an RL training run (defaults to DQN on S&P 500 mini-universe)
+$ python ProjectCode/train.py --config configs/dqn_sp500.yaml
 
-#### Load the Pipelines
+#### 7. back-test the saved checkpoint
+$ python ProjectCode/evaluate.py --checkpoint runs/2025-07-01-dqn/best.pt --plot
 
-1) Run the DataViz_v2 notebook for visualization and insights on the data or run the python file in the Data Pipelines folder.
-'''python Data
+The first training run (~15k environment steps) completes in under 10 minutes on an M1-Pro laptop; full 1-million-step runs take ~2 hours on a single RTX-4090.
 
-2) Run the DataPrep notebook if you want to follow along or the python file after setting the folder as Data Pipelines
-''' python DataPrepv2.py '''
+⸻
 
-#### Run the test cases
+Repository Layout
 
-There are test cases to check if the data is being loaded properly and if the data is found after loading, if the histogram and correlation matrices are being plotted. It also checks if the matrix is a 3x3 but it is actually a 8x8 so it will throw an error. 
+├── Data/                  ##### raw & processed CSVs (≈ 12 MB compressed)
+│   ├── equities_raw/      ##### one CSV per ticker
+│   └── features.parquet   ##### merged feature matrix after pipeline
+│
+├── DataPipelines/         ##### notebooks & py scripts for EDA + feature eng.
+│   ├── DataViz_v2.ipynb
+│   └── DataPrep_v2.ipynb
+│
+├── ProjectCode/
+│   ├── rl_env/            ##### OpenAI Gym-compatible environment
+│   ├── agents/            ##### DQN, PPO, A2C implementations (PyTorch)
+│   ├── baselines/         ##### Classical ML benchmarks
+│   ├── train.py           ##### CLI entry-point for RL training
+│   └── evaluate.py        ##### generates back-test charts & metrics
+│
+├── tests/                 ##### lightweight unit tests for pipelines & envs
+├── Research Papers/       ##### key literature (PDFs) that informed design
+├── presentation/          ##### slides for academic defence
+├── requirements.txt       ##### pinned, reproducible environment
+└── README.md              ##### you are here
 
-1)  Go to the testing folder and run the tests_viz
-''' python tests_viz.py'''
 
-This will throw an error in the terminal as i am checking if the tests are working or not.
+⸻
 
-2) Go to the testing folder and run the tests_DataPrepv2
-''' python tests_DataPrepv2.py '''
+### Data Pipeline
+	•	Source – Daily US equity data (2010-2024) pulled from Refinitiv, augmented with SP500 & DJI index returns.
+	•	Feature Engineering – Lag-1–Lag-5 returns, rolling mean/vol, bid-ask spread, Amihud illiquidity, turnover and macro factors.
+	•	Scripts – DataPrep_v2.ipynb transforms raw CSVs into a single features.parquet used by both classical and RL pipelines.
+
+Tip — headless usage
+Convert the notebook to a script and execute via:
+jupyter nbconvert --to script DataPipelines/DataPrep_v2.ipynb && python DataPipelines/DataPrep_v2.py --save-parquet
+
+⸻
+
+### Baseline Models
+
+Located in ProjectCode/baselines/:
+	•	random_forest.py – feature importance sanity-check.
+	•	svr.py – nonlinear benchmark.
+	•	arima.py – time-series baseline.
+
+Use python ProjectCode/baselines/run_all.py to reproduce the metrics table shown in the accompanying report.
+
+⸻
+
+### RL Environment & Agents
+	•	Environment – rl_env/market_env.py inherits from gym.Env.
+	•	State: engineered feature vector for the chosen ticker/universe.
+	•	Actions: {-1 = short, 0 = flat, +1 = long}.
+	•	Reward: daily log-return minus transaction costs.
+	•	Agents – Tabular DQN, Dueling DQN, PPO and Actor-Critic variants in agents/.
+	•	Config-driven – YAML files under configs/ let you swap networks, replay buffer sizes, learning rates, etc. without code edits.
+
+⸻
+
+### Back-testing & Evaluation
+
+After training, run:
+
+python ProjectCode/evaluate.py --checkpoint <path> --start 2023-01-01 --end 2024-12-31
+
+Outputs
+	1.	Equity-curve plot (cumulative returns)
+	2.	Rolling Sharpe (252-day window)
+	3.	Trade-by-trade summary (results/trades.csv)
+
+Metrics are stored in a lightweight MLflow run so you can compare experiments visually. Use mlflow ui to launch the dashboard.
 
 
+⸻
 
+Contributing
+
+Pull requests are welcome! Please open an issue first to discuss major changes.  Make sure new code passes flake8 and existing unit tests, and include docs / examples where appropriate.
+
+⸻
+
+License
+
+This project is licensed under the MIT License – see LICENSE for details.
